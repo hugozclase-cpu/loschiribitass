@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>enlaces pa comprar</title>
+    
+    <!-- Estilos en blanco y negro -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .categoria {
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .categoria h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        .formulario {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 5px;
+            border: 1px solid #000;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        li {
+            border-bottom: 1px dashed #ccc;
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        a {
+            color: #000;
+            word-break: break-all;
+        }
+        .btn-borrar {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #000;
+            padding: 2px 6px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .btn-borrar:hover {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>enlaces pa comprar aqui ya de yaaaa</h1>
+
+    <div id="contenedor-categorias">
+        <!-- Las carpetas se cargan aquí automáticamente -->
+    </div>
+
+    <!-- Script de Firebase y lógica de la página -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Tu configuración correcta de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKSXvMLpEvEtithEBn74QayLa3zUgY3kE",
+            authDomain: "los-chiribitas.firebaseapp.com",
+            databaseURL: "https://los-chiribitas-default-rtdb.firebaseio.com",
+            projectId: "los-chiribitas",
+            storageBucket: "los-chiribitas.firebasestorage.app",
+            messagingSenderId: "622711358787",
+            appId: "1:622711358787:web:f2a465c465d2da711c5bf6",
+            measurementId: "G-WWHN574VGT"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const categorias = [
+            "Casco",
+            "Sudadera",
+            "Gafas",
+            "Zapatillas de estar por casa",
+            "Calzoncillos",
+            "Pantalones",
+            "Riñonera"
+        ];
+
+        // Escuchar cambios en tiempo real desde la nube
+        onValue(ref(database, 'carpetas'), (snapshot) => {
+            const datos = snapshot.val() || {};
+            renderizar(datos);
+        });
+
+        function renderizar(datos) {
+            let contenedor = document.getElementById("contenedor-categorias");
+            contenedor.innerHTML = "";
+
+            categorias.forEach(function(cat) {
+                let div = document.createElement("div");
+                div.className = "categoria";
+
+                let html = "<h2> " + cat + "</h2>";
+                
+                html += '<div class="formulario">';
+                html += '<input type="text" id="input-' + cat + '" placeholder="Pega un enlace de ' + cat + '..."> ';
+                html += '<button onclick="guardarEnlace(\'' + cat + '\')">Añadir enlace</button>';
+                html += '</div>';
+
+                html += '<ul>';
+                let listaEnlaces = datos[cat] ? Object.entries(datos[cat]) : [];
+                
+                if (listaEnlaces.length === 0) {
+                    html += '<li style="color: #666; font-style: italic;">No hay enlaces añadidos aún.</li>';
+                } else {
+                    listaEnlaces.forEach(function([key, enlace]) {
+                        html += '<li>';
+                        html += '<a href="' + enlace + '" target="_blank">' + enlace + '</a>';
+                        html += '<button class="btn-borrar" onclick="borrarEnlace(\'' + cat + '\', \'' + key + '\')">Borrar</button>';
+                        html += '</li>';
+                    });
+                }
+                
+                html += '</ul>';
+
+                div.innerHTML = html;
+                contenedor.appendChild(div);
+            });
+        }
+
+        window.guardarEnlace = function(cat) {
+            let input = document.getElementById("input-" + cat);
+            let texto = input.value.trim();
+
+            if (texto === "") {
+                alert("Por favor, pega un enlace antes de añadir.");
+                return;
+            }
+
+            push(ref(database, 'carpetas/' + cat), texto);
+            input.value = "";
+        }
+
+        window.borrarEnlace = function(cat, key) {
+            remove(ref(database, 'carpetas/' + cat + '/' + key));
+        }
+    </script>
+
+</body>
+</html>
